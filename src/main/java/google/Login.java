@@ -25,7 +25,7 @@ public class Login {
         WebDriver driver = new ChromeDriver();
 
 // navigate() will open URL
-        driver.navigate().to("https://groups.google.com/a/shoemetro.com/forum/#!forum/cogs");
+        driver.navigate().to("https://outlook.office.com/owa/?realm=dswinc.com");
 
         System.out.println("Launching Browser");
 
@@ -36,12 +36,14 @@ public class Login {
 //        driver.findElement(By.<em>id("email")).sendKeys("username");
 //        driver.findElement(By.<em>id("pass")).sendKeys("password");
 
-// click method will click on Login button
-        driver.findElement(By.cssSelector("[type='email']")).sendKeys("bnguyen@shoemetro.com");
-        driver.findElement(By.id("identifierNext")).click();
-        WebDriverWait wait = new WebDriverWait(driver, 30);
+        WebDriverWait wait = new WebDriverWait(driver, 20);
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='submit']")));
+        driver.findElement(By.cssSelector("input[type='submit']")).click();
         Thread.sleep(WAIT_TIME);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[type='password']")));
+
+        //old code
+        /*wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[type='password']")));
         Thread.sleep(WAIT_TIME);
         driver.findElement(By.cssSelector("[type='password']")).sendKeys("Shoemetro4");
         driver.findElement(By.id("passwordNext")).click();
@@ -51,13 +53,24 @@ public class Login {
         driver.findElement(By.xpath("//*[@id='f-ic']/table/tbody/tr[1]/td[1]")).click();
         Thread.sleep(WAIT_TIME);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[role='main']")));
-        Thread.sleep(WAIT_TIME);
-        WebElement anchor = driver.findElement(By.cssSelector("div[role='main'] div[dir='ltr'] a"));
-        String link  =anchor.getAttribute("href");
-        System.out.println(link);//https://storage.googleapis.com/retailops-public/f702f2b07f5a932bf9bed35b9c532003/cog_onhand_appraiser-20170803.zip
-        String title = driver.findElement(By.id("t-t")).getText();//2017-08-03 23:59:59
-        Pattern p = Pattern.compile("\\d{4}\\-\\d{2}-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}");   // the pattern to search for
-        Matcher m = p.matcher(title);
+        Thread.sleep(WAIT_TIME);*/
+
+
+        WebElement span_mail_in_mail_list = driver.findElement(By.xpath("//div[@aria-label='Mail list']//span[starts-with(text(),'COG On Hand Appraiser Report')]"));
+        span_mail_in_mail_list.click();
+
+        //wait until [id="Item.MessageUniqueBody"] is avail;
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[id='Item.MessageUniqueBody']")));
+        WebElement mail_body = driver.findElement(By.cssSelector("[id='Item.MessageUniqueBody']"));
+        String text_please_find = mail_body.getText();
+
+//        String text_please_find = "Please find the COG On Hand Appraiser Report at https://storage.googleapis.com/retailops-public/52522e04e09d7e377b2089215718ba9c/cog_onhand_appraiser-20171211.zip.  Lot/Inventory figures as of: 2017-12-11 23:59:59.";
+        System.out.println("Mail body: " + text_please_find);//Please find the COG On Hand Appraiser Report at https://storage.googleapis.com/retailops-public/52522e04e09d7e377b2089215718ba9c/cog_onhand_appraiser-20171211.zip.
+        //Lot/Inventory figures as of: 2017-12-11 23:59:59.
+        driver.findElement(By.cssSelector("button[title='Archive (E)']")).click();
+
+        Pattern p = Pattern.compile("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}");   // the pattern to search for
+        Matcher m = p.matcher(text_please_find);
 
         String date_time = null;
         // if we find a match, get the group
@@ -67,14 +80,32 @@ public class Login {
             date_time = m.group(0);
 
             // print the group out for verification
-            System.out.format("Found: '%s'\n", date_time);
+            System.out.format("Found datetime: '%s'\n", date_time);
         }
 
-// This will close window
+        p = Pattern.compile("https://storage.googleapis.com/retailops-public/[a-zA-Z0-9]+/cog_onhand_appraiser-[0-9]+\\.zip");   // the pattern to search for
+        m = p.matcher(text_please_find);
+
+        String link = null;
+        // if we find a match, get the group
+        if (m.find())
+        {
+            // we're only looking for one group, so get it
+            link = m.group(0);
+
+            // print the group out for verification
+            System.out.format("Found link: '%s'\n", link);
+        }
+
+        // This will close window
         driver.close();
 
-        if (!link.contains("https://storage.googleapis.com/retailops-public")){
-            System.exit(0);
+        try {
+            if (!link.contains("https://storage.googleapis.com/retailops-public")){
+                System.exit(0);
+            }
+        } catch (NullPointerException e){
+            System.out.println("Exception" + e.getMessage());
         }
 
         //now writing to mysql db
