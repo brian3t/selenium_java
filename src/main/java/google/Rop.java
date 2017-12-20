@@ -1,10 +1,9 @@
 package google;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Wait;
@@ -22,9 +21,13 @@ public class Rop {
     public static final String DB_HOST = "127.0.0.1";
     public static final Integer WAIT_TIME = 500;
     public static final Integer WAIT_LONG_TIME = 10000;
+    public static final String REPORT_NAME = "PO Sales b3t";
 
     public static void main(String[] args) throws InterruptedException {
-// Create an object driver for accessing driver method’s
+        String report_selector = String.format("//div[contains(@class,'x-grid-cell-inner') and text()='%s']", REPORT_NAME);
+
+
+        // Create an object driver for accessing driver method’s
         ChromeOptions options = new ChromeOptions();
         options.addArguments("user-data-dir=C:\\Users\\tn423731\\AppData\\Local\\Google\\Chrome\\User Data");
         options.addArguments("--start-maximized");
@@ -59,8 +62,40 @@ public class Rop {
 //        driver.findElement(By.id("elUsername")).sendKeys("bnguyen@shoemetro.com");
 //        driver.findElement(By.id("elPassword")).sendKeys("rTrapok)1");
         driver.findElement(By.cssSelector("input[type='submit']")).click();
-//        Thread.sleep(WAIT_LONG_TIME);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[type='password']")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.favorite-tool-icon[data-test='Reporting']")));
+        driver.findElement(By.cssSelector("div.favorite-tool-icon[data-test='Reporting']")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.x-grid-view")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(report_selector)));
+        driver.findElement(By.xpath(report_selector)).click();
+        Thread.sleep(WAIT_TIME);
+        driver.findElement(By.xpath(report_selector)).click();
+
+        String report_filter = "div.gt-report-data span.iot-operation";
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(report_filter)));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(report_filter)));
+        WebElement report_filter_element = driver.findElement(By.cssSelector(report_filter));
+
+        Actions actions = new Actions(driver);
+        actions.moveToElement(report_filter_element);
+        actions.click();
+        for (int i = 0; i < 15; i++) {
+            actions.sendKeys(Keys.ARROW_RIGHT);
+        }
+        for (int i = 0; i < 15; i++) {
+            actions.sendKeys(Keys.BACK_SPACE);
+        }
+        actions.sendKeys("PO.NUMBER > \"16501\" AND PO.NUMBER < \"16991\" ");
+        actions.sendKeys(Keys.ENTER);
+        actions.build().perform();//done building query
+
+        //now download
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Download CSV']")));
+        driver.findElement(By.xpath("//span[text()='Download CSV']")).click();
+
+        Thread.sleep(WAIT_LONG_TIME);
+        Thread.sleep(WAIT_LONG_TIME);
+//        driver.close();
+
         //old code
         /*wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[type='password']")));
         Thread.sleep(WAIT_TIME);
