@@ -13,7 +13,7 @@
         <junit.version>4.11</junit.version>
         <testng.version>6.8.17</testng.version>
         <selenium.version>2.45.0</selenium.version>
-        <compiler.version>1.7</compiler.version>
+        <compiler.version>1.8</compiler.version>
     </properties>
 
 
