@@ -24,11 +24,12 @@ public class Rop {
     public static final String REPORT_NAME = "PO Sales b3t";
 
     public static void main(String[] args) throws InterruptedException {
+        System.setProperty("webdriver.chrome.driver", "/usr/lib/chromium-browser/chromedriver");
         String report_selector = String.format("//div[contains(@class,'x-grid-cell-inner') and text()='%s']", REPORT_NAME);
 
         // Create an object driver for accessing driver method’s
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("user-data-dir=C:\\Users\\tn423731\\AppData\\Local\\Google\\Chrome\\User Data");
+//        options.addArguments("user-data-dir=C:\\Users\\tn423731\\AppData\\Local\\Google\\Chrome\\User Data");
         options.addArguments("--start-maximized");
         WebDriver driver = new ChromeDriver(options);
 
